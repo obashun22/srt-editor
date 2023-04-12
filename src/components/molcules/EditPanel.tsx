@@ -1,4 +1,4 @@
-import { Form, Grid, Segment, TextArea } from "semantic-ui-react";
+import { Form, Grid, Progress, Segment, TextArea } from "semantic-ui-react";
 
 type stylesType = {
   textarea: React.CSSProperties;
@@ -15,8 +15,8 @@ const styles: stylesType = {
   },
   input: {
     outline: "none",
-    textAlign: "right",
-    width: "20px",
+    textAlign: "center",
+    width: "22px",
     fontFamily: "inherit",
     backgroundColor: "#f3f3f3",
   },
@@ -32,28 +32,41 @@ export const EditPanel = () => {
   return (
     <Segment className="text-left cursor-pointer" onClick={onPanelClick}>
       <Grid>
-        <Grid.Column width={4}>
-          <div className="inline-block" onClick={cancelClickEvent}>
+        <Grid.Column width={5}>
+          <div
+            className="inline-block cursor-default"
+            onClick={cancelClickEvent}
+          >
             <DigitInput />
-            :
+            {" : "}
             <DigitInput />
-            :
-            <DigitInput />-
+            {" : "}
+            <DigitInput />
+            {" -  "}
           </div>
-          <div className="inline-block" onClick={cancelClickEvent}>
+          <div
+            className="inline-block cursor-default"
+            onClick={cancelClickEvent}
+          >
             <DigitInput />
-            :
+            {" : "}
             <DigitInput />
-            :
+            {" : "}
             <DigitInput />
           </div>
         </Grid.Column>
-        <Grid.Column width={12}>
+        <Grid.Column width={11}>
           <Form onClick={cancelClickEvent}>
-            <TextArea style={styles.textarea} />
+            <TextArea
+              style={styles.textarea}
+              value={
+                "ああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ"
+              }
+            />
           </Form>
         </Grid.Column>
       </Grid>
+      <Progress percent={Math.random() * 100} attached="bottom" color="blue" />
     </Segment>
   );
 };
