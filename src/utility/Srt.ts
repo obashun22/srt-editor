@@ -2,7 +2,7 @@ import { SrtBlock } from "../types/Srt";
 
 export const parseSrtFile = async (file: File): Promise<SrtBlock[]> => {
   const contents = await file.text(); // ファイルの内容を取得
-  const lines = contents.split("\n"); // 改行で行を分割
+  const lines = contents.trimEnd().split("\n"); // 末尾の改行を除去して改行で行を分割
 
   const srtBlock: SrtBlock[] = [];
 
@@ -19,6 +19,7 @@ export const parseSrtFile = async (file: File): Promise<SrtBlock[]> => {
     // SRTファイルの3行目以降はテキスト
     let subtitle = "";
     while (i < lines.length && lines[i].trim() !== "") {
+      // 末尾は i < lines.length により終了
       subtitle += lines[i++] + "\n";
     }
     subtitle = subtitle.trim();
@@ -43,7 +44,7 @@ export const parseTime = (timeStr: string) => {
   return { hours, minutes, seconds, milliseconds };
 };
 
-export const generateSrtFile = (srtBlock: SrtBlock[]): string => {
+export const generateSrtString = (srtBlock: SrtBlock[]): string => {
   let result = "";
   for (let i = 0; i < srtBlock.length; i++) {
     const { id, start, end, subtitle } = srtBlock[i];
