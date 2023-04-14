@@ -1,39 +1,42 @@
 import { Container, Input, Menu } from "semantic-ui-react";
 import { TitleHeader } from "../organisms/TitleHeader";
 import { UploadPanel } from "../molcules/UploadPanel";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { EditPanel } from "../molcules/EditPanel";
 import { SrtBlock } from "../../types/Srt";
 import { parseSrtFile } from "../../utility/Srt";
 
-export const SRTEditor = () => {
+export const SRTEditor = memo(() => {
   const [srtFile, setSrtFile] = useState<File | null>(null);
   const [srtData, setSrtData] = useState<SrtBlock[]>([]);
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSrtFile(e.target.files[0]);
-      console.log("SRT File: ", e.target.files[0]);
-      parseSrtFile(e.target.files[0])
-        .then((data) => {
-          setSrtData(data);
-          console.log("SRT Data: ", data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  };
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        setSrtFile(e.target.files[0]);
+        console.log("SRT File: ", e.target.files[0]);
+        parseSrtFile(e.target.files[0])
+          .then((data) => {
+            setSrtData(data);
+            console.log("SRT Data: ", data);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
+    []
+  );
 
-  const handleQuitButtonClick = () => {
+  const handleQuitButtonClick = useCallback(() => {
     // const willQuit = window.confirm("編集中の内容は破棄されます。");
     const willQuit = true;
     if (willQuit) {
       setSrtFile(null);
     }
-  };
+  }, []);
 
-  const handleResetButtonClick = () => {
+  const handleResetButtonClick = useCallback(() => {
     // const willReset = window.confirm("編集中の内容は破棄されます。");
     const willReset = true;
     if (willReset) {
@@ -48,17 +51,21 @@ export const SRTEditor = () => {
           });
       }
     }
-  };
+  }, [srtFile]);
 
-  const handleDownloadButtonClick = () => {
+  const handleDownloadButtonClick = useCallback(() => {
     console.log("download");
-  };
+  }, []);
 
-  const handleSrtBlockChange = (newSrtBlock: SrtBlock) => {
-    let newSrtData = structuredClone(srtData); // Deep copy
-    newSrtData[newSrtBlock.id - 1] = newSrtBlock;
-    setSrtData(newSrtData);
-  };
+  const handleSrtBlockChange = useCallback((newSrtBlock: SrtBlock) => {
+    setSrtData((prevSrtData) => {
+      // 直接stateを参照するとコールバック関数をメモ化できない
+      let newSrtData = [...prevSrtData]; // Shallow copy
+      newSrtData[newSrtBlock.id - 1] = newSrtBlock; // 値が変更されたblockとsrtDataだけアドレスが変わる
+      console.log(newSrtBlock);
+      return newSrtData;
+    });
+  }, []);
 
   return (
     <>
@@ -71,7 +78,7 @@ export const SRTEditor = () => {
                 <Menu.Item link onClick={handleQuitButtonClick}>
                   終了
                 </Menu.Item>
-                <Menu.Menu position="right" link>
+                <Menu.Menu position="right">
                   <Menu.Item link onClick={handleResetButtonClick}>
                     リセット
                   </Menu.Item>
@@ -100,4 +107,14 @@ export const SRTEditor = () => {
       </Container>
     </>
   );
-};
+});
+
+/*
+
+SRTEditor SrtBlock[]
+↓
+EditPanel SrtBlock
+↓
+DigitInput number
+
+*/

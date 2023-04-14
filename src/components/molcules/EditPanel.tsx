@@ -7,7 +7,7 @@ import {
   TextArea,
 } from "semantic-ui-react";
 import { SrtBlock } from "../../types/Srt";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 type Props = {
   srtBlock: SrtBlock;
@@ -36,44 +36,48 @@ const styles: stylesType = {
   },
 };
 
-export const EditPanel: React.VFC<Props> = (props) => {
+export const EditPanel: React.VFC<Props> = memo((props) => {
   const { srtBlock, onSrtBlockChange } = props;
 
-  const onPanelClick = () => {
+  const onPanelClick = useCallback(() => {
     console.log("panel clicked");
-  };
-  const preventClickEvent = (e: React.MouseEvent) => {
+  }, []);
+  const preventClickEvent = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-  };
-  const handleTimecodeChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "start" | "end",
-    scale: "hours" | "minutes" | "seconds"
-  ) => {
-    const newSrtBlock = {
-      ...srtBlock,
-      [type]: {
-        ...srtBlock.start,
-        [scale]: parseInt(e.target.value.toString().slice(-2)),
-      },
-    };
-    onSrtBlockChange(newSrtBlock);
-  };
+  }, []);
+  const handleTimecodeChange = useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement>,
+      type: "start" | "end",
+      scale: "hours" | "minutes" | "seconds"
+    ) => {
+      const newSrtBlock = {
+        ...srtBlock,
+        [type]: {
+          ...srtBlock.start,
+          [scale]: parseInt(e.target.value.toString().slice(-2)),
+        },
+      };
+      onSrtBlockChange(newSrtBlock);
+    },
+    [srtBlock, onSrtBlockChange]
+  );
+  const handleSubtitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newSrtBlock = {
+        ...srtBlock,
+        subtitle: e.target.value,
+      };
+      onSrtBlockChange(newSrtBlock);
+    },
+    [srtBlock, onSrtBlockChange]
+  );
 
-  const handleSubtitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newSrtBlock = {
-      ...srtBlock,
-      subtitle: e.target.value,
-    };
-    onSrtBlockChange(newSrtBlock);
-  };
-
-  const { id, start, end, subtitle } = srtBlock;
+  const { start, end, subtitle } = srtBlock;
   return (
     <Segment className="text-left cursor-pointer" onClick={onPanelClick}>
       <Grid stackable>
         <Grid.Column width={4}>
-          {/* <div className="mb-1">{id}</div> */}
           <div className="">
             <div
               className="inline-block cursor-default mr-1"
@@ -132,14 +136,14 @@ export const EditPanel: React.VFC<Props> = (props) => {
       <Progress percent={Math.random() * 100} attached="bottom" color="blue" />
     </Segment>
   );
-};
+});
 
 type DigitInputProps = {
   digits: number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const DigitInput: React.VFC<DigitInputProps> = (props) => {
+const DigitInput: React.VFC<DigitInputProps> = memo((props) => {
   const { digits, onChange } = props;
   return (
     <input
@@ -150,4 +154,4 @@ const DigitInput: React.VFC<DigitInputProps> = (props) => {
       onChange={onChange}
     />
   );
-};
+});

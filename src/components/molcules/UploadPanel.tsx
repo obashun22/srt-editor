@@ -1,10 +1,11 @@
+import { memo } from "react";
 import { Segment, Header, Icon } from "semantic-ui-react";
 
 type Props = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-export const UploadPanel: React.VFC<Props> = (props) => {
+export const UploadPanel: React.VFC<Props> = memo((props) => {
   const { onChange } = props;
   return (
     <Segment placeholder>
@@ -30,4 +31,4 @@ export const UploadPanel: React.VFC<Props> = (props) => {
       />
     </Segment>
   );
-};
+});
