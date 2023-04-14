@@ -7,7 +7,7 @@ import {
   TextArea,
 } from "semantic-ui-react";
 import { SrtBlock } from "../../types/Srt";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 type Props = {
   srtBlock: SrtBlock;
@@ -37,11 +37,7 @@ const styles: stylesType = {
 };
 
 export const EditPanel: React.VFC<Props> = (props) => {
-  const { onSrtBlockChange } = props;
-  const [srtBlock, setSrtBlock] = useState<SrtBlock>(props.srtBlock);
-  useEffect(() => {
-    onSrtBlockChange(srtBlock);
-  }, [srtBlock]);
+  const { srtBlock, onSrtBlockChange } = props;
 
   const onPanelClick = () => {
     console.log("panel clicked");
@@ -54,21 +50,24 @@ export const EditPanel: React.VFC<Props> = (props) => {
     type: "start" | "end",
     scale: "hours" | "minutes" | "seconds"
   ) => {
-    setSrtBlock({
+    const newSrtBlock = {
       ...srtBlock,
       [type]: {
         ...srtBlock.start,
         [scale]: parseInt(e.target.value.toString().slice(-2)),
       },
-    });
+    };
+    onSrtBlockChange(newSrtBlock);
   };
 
   const handleSubtitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSrtBlock({
+    const newSrtBlock = {
       ...srtBlock,
       subtitle: e.target.value,
-    });
+    };
+    onSrtBlockChange(newSrtBlock);
   };
+
   const { id, start, end, subtitle } = srtBlock;
   return (
     <Segment className="text-left cursor-pointer" onClick={onPanelClick}>
@@ -127,7 +126,7 @@ export const EditPanel: React.VFC<Props> = (props) => {
           </Form>
         </Grid.Column>
         <Grid.Column width={1} className="text-right">
-          <Icon name="trash" color="grey" link />
+          <Icon name="trash" color="grey" link onClick={preventClickEvent} />
         </Grid.Column>
       </Grid>
       <Progress percent={Math.random() * 100} attached="bottom" color="blue" />

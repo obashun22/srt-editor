@@ -1,4 +1,4 @@
-import { Container, Menu } from "semantic-ui-react";
+import { Container, Input, Menu } from "semantic-ui-react";
 import { TitleHeader } from "../organisms/TitleHeader";
 import { UploadPanel } from "../molcules/UploadPanel";
 import { useState } from "react";
@@ -13,11 +13,11 @@ export const SRTEditor = () => {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSrtFile(e.target.files[0]);
-      console.log(e.target.files[0]);
+      console.log("SRT File: ", e.target.files[0]);
       parseSrtFile(e.target.files[0])
         .then((data) => {
           setSrtData(data);
-          console.log(data);
+          console.log("SRT Data: ", data);
         })
         .catch((err) => {
           console.log(err);
@@ -54,11 +54,10 @@ export const SRTEditor = () => {
     console.log("download");
   };
 
-  const handleSrtBlockChange = (srtBlock: SrtBlock) => {
-    let newSrtData = srtData;
-    newSrtData[srtBlock.id - 1] = srtBlock;
+  const handleSrtBlockChange = (newSrtBlock: SrtBlock) => {
+    let newSrtData = structuredClone(srtData); // Deep copy
+    newSrtData[newSrtBlock.id - 1] = newSrtBlock;
     setSrtData(newSrtData);
-    console.log(srtBlock);
   };
 
   return (
