@@ -129,9 +129,9 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
             />
           </Form>
         </Grid.Column>
-        <Grid.Column width={1} className="text-right">
+        {/* <Grid.Column width={1} className="text-right">
           <Icon name="trash" color="grey" link onClick={preventClickEvent} />
-        </Grid.Column>
+        </Grid.Column> */}
       </Grid>
       <Progress percent={Math.random() * 100} attached="bottom" color="blue" />
     </Segment>

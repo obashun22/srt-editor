@@ -1,4 +1,11 @@
-import { Container, Input, Menu } from "semantic-ui-react";
+import {
+  Container,
+  Dimmer,
+  Input,
+  Loader,
+  Menu,
+  Segment,
+} from "semantic-ui-react";
 import { TitleHeader } from "../organisms/TitleHeader";
 import { UploadPanel } from "../molcules/UploadPanel";
 import { memo, useCallback, useState } from "react";
@@ -14,9 +21,10 @@ export const SRTEditor = memo(() => {
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files) {
-        setLoading(true);
         setSrtFile(e.target.files[0]);
+        setLoading(true);
         // console.log("SRT File: ", e.target.files[0]);
+        // if ファイルが音声 then APIに問い合わせ
         parseSrtFile(e.target.files[0])
           .then((data) => {
             setSrtData(data);
@@ -30,7 +38,7 @@ export const SRTEditor = memo(() => {
           });
       }
     },
-    []
+    [setLoading]
   );
 
   const handleQuitButtonClick = useCallback(() => {
@@ -47,7 +55,6 @@ export const SRTEditor = memo(() => {
         parseSrtFile(srtFile)
           .then((data) => {
             setSrtData(data);
-            console.log(data);
           })
           .catch((err) => {
             console.log(err);
@@ -59,10 +66,7 @@ export const SRTEditor = memo(() => {
   const handleDownloadButtonClick = useCallback(() => {
     const willDownload = window.confirm("編集中の内容をダウンロードします。");
     if (willDownload) {
-      console.log(srtData);
       const srtStr = generateSrtString(srtData);
-      console.log(srtStr);
-      // srtStrをoutput.srtとしてダウンロードする処理
       const blob = new Blob([srtStr], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -116,6 +120,14 @@ export const SRTEditor = memo(() => {
               ))}
             </div>
           </>
+        ) : loading ? (
+          <div className="my-6">
+            <Segment className="h-64">
+              <Dimmer active inverted>
+                <Loader inverted>読み込み中</Loader>
+              </Dimmer>
+            </Segment>
+          </div>
         ) : (
           <div className="mt-16">
             <UploadPanel onChange={handleFileInputChange} />
