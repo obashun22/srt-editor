@@ -1,6 +1,7 @@
 import { Form, Grid, Progress, Segment, TextArea } from "semantic-ui-react";
 import { SrtBlock } from "../../types/Srt";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useContext, useState } from "react";
+import { AudioContext } from "../../providers/AudioPlovider";
 
 type Props = {
   srtBlock: SrtBlock;
@@ -29,12 +30,36 @@ const styles: stylesType = {
   },
 };
 
+// let intervalId: NodeJS.Timeout;
+
 export const EditPanel: React.VFC<Props> = memo((props) => {
   const { srtBlock, onSrtBlockChange } = props;
+  const [progressRate, setProgressRate] = useState(0);
 
-  const onPanelClick = useCallback(() => {
-    console.log("panel clicked");
-  }, []);
+  const audioPlayer = useContext(AudioContext);
+
+  const handlePanelClick = useCallback(() => {
+    const { start, end } = srtBlock;
+    const startTime = start.hours * 3600 + start.minutes * 60 + start.seconds;
+    const endTime = end.hours * 3600 + end.minutes * 60 + end.seconds;
+    const duration = endTime - startTime;
+    audioPlayer.seek(startTime);
+    audioPlayer.play();
+    const intervalId = setInterval(() => {
+      const currentTime = audioPlayer.currentTime;
+      setProgressRate((currentTime - startTime) / duration);
+      console.log("currentTime: ", currentTime);
+      if (
+        audioPlayer.currentTime < startTime ||
+        audioPlayer.currentTime >= endTime
+      ) {
+        audioPlayer.pause(); // ここで一時停止すると、別コンポーネントを押しても止まってしまう
+        setProgressRate(0);
+        clearInterval(intervalId);
+      }
+      // 親コンポーネントにintervalIdを渡して、親コンポーネントでclearIntervalする
+    }, 50);
+  }, [srtBlock, audioPlayer, setProgressRate]);
   const preventClickEvent = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
   }, []);
@@ -66,9 +91,10 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     [srtBlock, onSrtBlockChange]
   );
 
+  console.log("progressRate: " + progressRate);
   const { start, end, subtitle } = srtBlock;
   return (
-    <Segment className="text-left cursor-pointer" onClick={onPanelClick}>
+    <Segment className="text-left cursor-pointer" onClick={handlePanelClick}>
       <Grid stackable>
         <Grid.Column width={4}>
           <div className="">
@@ -126,7 +152,7 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
           <Icon name="trash" color="grey" link onClick={preventClickEvent} />
         </Grid.Column> */}
       </Grid>
-      <Progress percent={Math.random() * 100} attached="bottom" color="blue" />
+      <Progress percent={progressRate * 100} attached="bottom" color="blue" />
     </Segment>
   );
 });

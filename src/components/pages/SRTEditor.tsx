@@ -10,16 +10,19 @@ import {
 } from "semantic-ui-react";
 import { TitleHeader } from "../organisms/TitleHeader";
 import { UploadPanel } from "../molcules/UploadPanel";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useContext, useState } from "react";
 import { EditPanel } from "../molcules/EditPanel";
 import { SrtBlock } from "../../types/Srt";
-import { parseSrtFile, generateSrtString } from "../../utility/Srt";
+import { parseSrtFile, generateSrtString } from "../../utils/Srt";
+import { AudioContext } from "../../providers/AudioPlovider";
 
 export const SRTEditor = memo(() => {
   const [srtFile, setSrtFile] = useState<File | null>(null);
   const [srtData, setSrtData] = useState<SrtBlock[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [audioFile, setAudioFile] = useState<File | null>(null);
+
+  const audioPlayer = useContext(AudioContext);
 
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +75,7 @@ export const SRTEditor = memo(() => {
         }
       }
     },
-    [setAudioFile]
+    [setAudioFile, audioPlayer]
   );
 
   const handleQuitButtonClick = useCallback(() => {
@@ -129,8 +132,6 @@ export const SRTEditor = memo(() => {
         <Button
           onClick={() => {
             audioPlayer.play();
-            console.log(audioPlayer.audio.paused);
-            console.log(audioPlayer.currentTime);
           }}
         >
           Play
@@ -138,8 +139,6 @@ export const SRTEditor = memo(() => {
         <Button
           onClick={() => {
             audioPlayer.pause();
-            console.log(audioPlayer.audio.paused);
-            console.log(audioPlayer.currentTime);
           }}
         >
           Pause
@@ -147,8 +146,6 @@ export const SRTEditor = memo(() => {
         <Button
           onClick={() => {
             audioPlayer.seek(5);
-            console.log(audioPlayer.audio.paused);
-            console.log(audioPlayer.currentTime);
           }}
         >
           Seek
@@ -232,32 +229,3 @@ EditPanel SrtBlock
 DigitInput number
 
 */
-
-class AudioPlayer {
-  audio: HTMLAudioElement;
-
-  constructor() {
-    this.audio = document.createElement("audio");
-  }
-  get src() {
-    return this.audio.src;
-  }
-  set src(src: string) {
-    this.audio.src = src;
-  }
-  get currentTime() {
-    return this.audio.currentTime;
-  }
-
-  play() {
-    this.audio.play();
-  }
-  pause() {
-    this.audio.pause();
-  }
-  seek(time: number) {
-    this.audio.currentTime = time;
-  }
-}
-
-const audioPlayer = new AudioPlayer();
