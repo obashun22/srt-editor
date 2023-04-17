@@ -30,7 +30,7 @@ const styles: stylesType = {
   },
 };
 
-// let intervalId: NodeJS.Timeout;
+let playingId = 0;
 
 export const EditPanel: React.VFC<Props> = memo((props) => {
   const { srtBlock, onSrtBlockChange } = props;
@@ -39,25 +39,29 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
   const audioPlayer = useContext(AudioContext);
 
   const handlePanelClick = useCallback(() => {
-    const { start, end } = srtBlock;
+    const { id, start, end } = srtBlock;
     const startTime = start.hours * 3600 + start.minutes * 60 + start.seconds;
     const endTime = end.hours * 3600 + end.minutes * 60 + end.seconds;
     const duration = endTime - startTime;
+    playingId = id;
+    console.log("playingId: ", playingId);
     audioPlayer.seek(startTime);
     audioPlayer.play();
     const intervalId = setInterval(() => {
       const currentTime = audioPlayer.currentTime;
       setProgressRate((currentTime - startTime) / duration);
       console.log("currentTime: ", currentTime);
-      if (
-        audioPlayer.currentTime < startTime ||
-        audioPlayer.currentTime >= endTime
-      ) {
-        audioPlayer.pause(); // ここで一時停止すると、別コンポーネントを押しても止まってしまう
+      if (playingId !== id) {
         setProgressRate(0);
         clearInterval(intervalId);
+        return;
       }
-      // 親コンポーネントにintervalIdを渡して、親コンポーネントでclearIntervalする
+      if (audioPlayer.currentTime >= endTime) {
+        audioPlayer.pause();
+        setProgressRate(0);
+        clearInterval(intervalId);
+        return;
+      }
     }, 50);
   }, [srtBlock, audioPlayer, setProgressRate]);
   const preventClickEvent = useCallback((e: React.MouseEvent) => {
