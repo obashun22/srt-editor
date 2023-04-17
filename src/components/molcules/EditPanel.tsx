@@ -1,13 +1,6 @@
-import {
-  Form,
-  Grid,
-  Icon,
-  Progress,
-  Segment,
-  TextArea,
-} from "semantic-ui-react";
+import { Form, Grid, Progress, Segment, TextArea } from "semantic-ui-react";
 import { SrtBlock } from "../../types/Srt";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback } from "react";
 
 type Props = {
   srtBlock: SrtBlock;
