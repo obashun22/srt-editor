@@ -46,6 +46,7 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     playingId = id;
     // console.log("playingId: ", playingId);
     if (!audioPlayer.src) {
+      // FIXME: 一度アップロードされるとsrcが空文字にならずalertが出ない
       alert("音声ファイルをアップロードしてください。");
       return;
     }

@@ -1,13 +1,4 @@
-import {
-  Button,
-  Container,
-  Dimmer,
-  Header,
-  Icon,
-  Loader,
-  Menu,
-  Segment,
-} from "semantic-ui-react";
+import { Container, Dimmer, Loader, Menu, Segment } from "semantic-ui-react";
 import { TitleHeader } from "../organisms/TitleHeader";
 import { UploadPanel } from "../molcules/UploadPanel";
 import { memo, useCallback, useContext, useState } from "react";
@@ -16,6 +7,9 @@ import { SrtBlock } from "../../types/Srt";
 import { parseSrtFile, generateSrtString } from "../../utils/Srt";
 import { AudioContext } from "../../providers/AudioPlovider";
 import { AudioUploadPanel } from "../molcules/AudioUploadPanel";
+import { ApiClient } from "../../api/ApiClient";
+
+const apiClient = new ApiClient();
 
 export const SRTEditor = memo(() => {
   const [srtFile, setSrtFile] = useState<File | null>(null);
@@ -32,7 +26,7 @@ export const SRTEditor = memo(() => {
         // if ファイルが音声 then APIに問い合わせ
         const uploadFile = e.target.files[0];
         console.log(uploadFile);
-        let srt = null;
+        let srt: File | null = null;
         switch (uploadFile.type) {
           case "audio/mpeg":
           case "audio/mp3":
@@ -40,31 +34,56 @@ export const SRTEditor = memo(() => {
           case "audio/ogg":
           case "audio/aac":
             setAudioFile(uploadFile);
+            audioPlayer.src = URL.createObjectURL(e.target.files[0]);
             // APIを叩いてSRTを取得
-            srt = null;
-            setSrtFile(srt);
+            apiClient
+              .translateToSrt(uploadFile)
+              .then((blob) => {
+                console.log(blob!);
+                srt = blob!;
+                setSrtFile(srt);
+                parseSrtFile(srt)
+                  .then((data) => {
+                    setSrtData(data);
+                  })
+                  .catch((e) => {
+                    console.log(e);
+                    alert("SRTファイルのパースに失敗しました。");
+                    setSrtFile(null);
+                    setAudioFile(null);
+                    audioPlayer.src = "";
+                  });
+              })
+              .catch((e) => {
+                console.log(e);
+                alert("SRTファイルの取得に失敗しました。");
+                setAudioFile(null);
+                audioPlayer.src = "";
+              })
+              .finally(() => {
+                setLoading(false);
+              });
             break;
           default:
             srt = uploadFile;
             setSrtFile(srt);
+            parseSrtFile(srt)
+              .then((data) => {
+                setSrtData(data);
+              })
+              .catch((err) => {
+                console.log(err);
+                alert("SRTファイルのパースに失敗しました。");
+                setSrtFile(null);
+              })
+              .finally(() => {
+                setLoading(false);
+              });
             break;
         }
-        parseSrtFile(srt!)
-          .then((data) => {
-            setSrtData(data);
-          })
-          .catch((err) => {
-            console.log(err);
-            alert("SRTファイルのパースに失敗しました。");
-            setSrtFile(null);
-            setAudioFile(null);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
       }
     },
-    [setLoading, setSrtData, setSrtFile, setAudioFile]
+    [setLoading, setSrtData, setSrtFile, setAudioFile, audioPlayer]
   );
 
   const handleAudioFileInputChange = useCallback(
@@ -95,6 +114,7 @@ export const SRTEditor = memo(() => {
       setSrtFile(null);
       setSrtData([]);
       setAudioFile(null);
+      audioPlayer.src = "";
     }
   }, [setSrtFile, setAudioFile, audioPlayer]);
 
