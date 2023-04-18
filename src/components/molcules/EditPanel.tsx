@@ -44,25 +44,40 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     const endTime = end.hours * 3600 + end.minutes * 60 + end.seconds;
     const duration = endTime - startTime;
     playingId = id;
-    console.log("playingId: ", playingId);
+    // console.log("playingId: ", playingId);
     audioPlayer.seek(startTime);
     audioPlayer.play();
+    let timeMS = 0;
+    const intervalMS = 50;
     const intervalId = setInterval(() => {
       const currentTime = audioPlayer.currentTime;
       setProgressRate((currentTime - startTime) / duration);
-      console.log("currentTime: ", currentTime);
+      // 別ブロックを選択した場合
       if (playingId !== id) {
         setProgressRate(0);
         clearInterval(intervalId);
+        console.log("clearInterval");
         return;
       }
-      if (audioPlayer.currentTime >= endTime) {
+      // 自身の再生が終了した場合
+      if (timeMS > duration * 1000 + 1000) {
+        clearInterval(intervalId);
+        console.log("clearInterval");
+        return;
+      }
+      // 再生範囲外に移動した場合
+      if (
+        audioPlayer.currentTime < startTime ||
+        audioPlayer.currentTime >= endTime
+      ) {
         audioPlayer.pause();
         setProgressRate(0);
         clearInterval(intervalId);
+        console.log("clearInterval");
         return;
       }
-    }, 50);
+      timeMS += intervalMS;
+    }, intervalMS);
   }, [srtBlock, audioPlayer, setProgressRate]);
   const preventClickEvent = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -95,7 +110,7 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     [srtBlock, onSrtBlockChange]
   );
 
-  console.log("progressRate: " + progressRate);
+  // console.log("progressRate: " + progressRate);
   const { start, end, subtitle } = srtBlock;
   return (
     <Segment className="text-left cursor-pointer" onClick={handlePanelClick}>
