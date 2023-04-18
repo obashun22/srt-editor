@@ -45,6 +45,10 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     const duration = endTime - startTime;
     playingId = id;
     // console.log("playingId: ", playingId);
+    if (!audioPlayer.src) {
+      alert("音声ファイルをアップロードしてください。");
+      return;
+    }
     audioPlayer.seek(startTime);
     audioPlayer.play();
     let timeMS = 0;

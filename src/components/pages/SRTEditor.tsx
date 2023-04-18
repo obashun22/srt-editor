@@ -15,6 +15,7 @@ import { EditPanel } from "../molcules/EditPanel";
 import { SrtBlock } from "../../types/Srt";
 import { parseSrtFile, generateSrtString } from "../../utils/Srt";
 import { AudioContext } from "../../providers/AudioPlovider";
+import { AudioUploadPanel } from "../molcules/AudioUploadPanel";
 
 export const SRTEditor = memo(() => {
   const [srtFile, setSrtFile] = useState<File | null>(null);
@@ -28,32 +29,42 @@ export const SRTEditor = memo(() => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files) {
         setLoading(true);
-        // console.log("SRT File: ", e.target.files[0]);
-        // // if ファイルが音声 then APIに問い合わせ
-        // switch (e.target.files[0].type) {
-        //   case "audio/mpeg":
-        //   case "audio/mp3":
-        //   case "audio/wav":
-        //   case "audio/ogg":
-        //   case "audio/aac":
-        //     setAudioFile(e.target.files[0]);
-        //     break;
-        // }
-        setSrtFile(e.target.files[0]);
-        parseSrtFile(e.target.files[0])
+        // if ファイルが音声 then APIに問い合わせ
+        const uploadFile = e.target.files[0];
+        console.log(uploadFile);
+        let srt = null;
+        switch (uploadFile.type) {
+          case "audio/mpeg":
+          case "audio/mp3":
+          case "audio/wav":
+          case "audio/ogg":
+          case "audio/aac":
+            setAudioFile(uploadFile);
+            // APIを叩いてSRTを取得
+            srt = null;
+            setSrtFile(srt);
+            break;
+          default:
+            srt = uploadFile;
+            setSrtFile(srt);
+            break;
+        }
+        parseSrtFile(srt!)
           .then((data) => {
             setSrtData(data);
-            // console.log("SRT Data: ", data);
           })
           .catch((err) => {
             console.log(err);
+            alert("SRTファイルのパースに失敗しました。");
+            setSrtFile(null);
+            setAudioFile(null);
           })
           .finally(() => {
             setLoading(false);
           });
       }
     },
-    [setLoading]
+    [setLoading, setSrtData, setSrtFile, setAudioFile]
   );
 
   const handleAudioFileInputChange = useCallback(
@@ -68,7 +79,6 @@ export const SRTEditor = memo(() => {
             setAudioFile(e.target.files[0]);
             audioPlayer.src = URL.createObjectURL(e.target.files[0]);
             break;
-          // 動画ファイルの場合の処理
           default:
             alert("音声ファイルを選択してください。");
             break;
@@ -81,13 +91,17 @@ export const SRTEditor = memo(() => {
   const handleQuitButtonClick = useCallback(() => {
     const willQuit = window.confirm("編集中の内容は破棄されます。");
     if (willQuit) {
+      audioPlayer.pause();
       setSrtFile(null);
+      setSrtData([]);
+      setAudioFile(null);
     }
-  }, []);
+  }, [setSrtFile, setAudioFile, audioPlayer]);
 
   const handleResetButtonClick = useCallback(() => {
     const willReset = window.confirm("編集中の内容は破棄されます。");
     if (willReset) {
+      audioPlayer.pause();
       if (srtFile) {
         parseSrtFile(srtFile)
           .then((data) => {
@@ -98,7 +112,7 @@ export const SRTEditor = memo(() => {
           });
       }
     }
-  }, [srtFile]);
+  }, [srtFile, setSrtData, audioPlayer]);
 
   const handleDownloadButtonClick = useCallback(() => {
     const willDownload = window.confirm("編集中の内容をダウンロードします。");
@@ -129,50 +143,8 @@ export const SRTEditor = memo(() => {
     <>
       <TitleHeader />
       <Container>
-        <Button
-          onClick={() => {
-            audioPlayer.play();
-          }}
-        >
-          Play
-        </Button>
-        <Button
-          onClick={() => {
-            audioPlayer.pause();
-          }}
-        >
-          Pause
-        </Button>
-        <Button
-          onClick={() => {
-            audioPlayer.seek(5);
-          }}
-        >
-          Seek
-        </Button>
-        {!audioFile && (
-          <Segment placeholder>
-            <Header icon>
-              <Icon
-                name="file audio"
-                style={{ display: "inline-block", marginRight: "20px" }}
-              />
-              {"or"}
-              <Icon
-                name="file video"
-                style={{ display: "inline-block", marginLeft: "20px" }}
-              />
-              <p className="mt-6">
-                音声または動画ファイルをアップロードしてください。
-              </p>
-            </Header>
-            <input
-              className="mx-auto"
-              type="file"
-              accept=".wav,.mp3,.mp4"
-              onChange={handleAudioFileInputChange}
-            />
-          </Segment>
+        {!audioFile && srtFile && (
+          <AudioUploadPanel onChange={handleAudioFileInputChange} />
         )}
         {srtFile ? (
           <>

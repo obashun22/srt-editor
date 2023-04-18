@@ -1,39 +1,42 @@
 import { SrtBlock } from "../types/Srt";
 
 export const parseSrtFile = async (file: File): Promise<SrtBlock[]> => {
-  const contents = await file.text(); // ファイルの内容を取得
-  const lines = contents.trimEnd().split("\n"); // 末尾の改行を除去して改行で行を分割
+  try {
+    const contents = await file.text(); // ファイルの内容を取得
+    const lines = contents.trimEnd().split("\n"); // 末尾の改行を除去して改行で行を分割
 
-  const srtBlock: SrtBlock[] = [];
+    const srtBlock: SrtBlock[] = [];
 
-  let i = 0;
-  while (i < lines.length) {
-    // SRTファイルの1行目はID
-    const id = parseInt(lines[i++], 10);
+    let i = 0;
+    while (i < lines.length) {
+      // SRTファイルの1行目はID
+      const id = parseInt(lines[i++], 10);
 
-    // SRTファイルの2行目は時間情報
-    const [timeStartStr, timeEndStr] = lines[i++].split(" --> ");
-    const start = parseTime(timeStartStr.trim());
-    const end = parseTime(timeEndStr.trim());
+      // SRTファイルの2行目は時間情報
+      const [timeStartStr, timeEndStr] = lines[i++].split(" --> ");
+      const start = parseTime(timeStartStr.trim());
+      const end = parseTime(timeEndStr.trim());
 
-    // SRTファイルの3行目以降はテキスト
-    let subtitle = "";
-    while (i < lines.length && lines[i].trim() !== "") {
-      // 末尾は i < lines.length により終了
-      subtitle += lines[i++] + "\n";
+      // SRTファイルの3行目以降はテキスト
+      let subtitle = "";
+      while (i < lines.length && lines[i].trim() !== "") {
+        // 末尾は i < lines.length により終了
+        subtitle += lines[i++] + "\n";
+      }
+      subtitle = subtitle.trim();
+
+      srtBlock.push({
+        id,
+        start,
+        end,
+        subtitle,
+      });
+      i++;
     }
-    subtitle = subtitle.trim();
-
-    srtBlock.push({
-      id,
-      start,
-      end,
-      subtitle,
-    });
-    i++;
+    return srtBlock;
+  } catch (e) {
+    throw new Error("SRTファイルのパースに失敗しました。");
   }
-
-  return srtBlock;
 };
 
 export const parseTime = (timeStr: string) => {
