@@ -142,7 +142,7 @@ export const SRTEditor = memo(() => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "output.txt";
+      a.download = "output.srt";
       document.body.appendChild(a); // For Firefox
       a.click();
       a.remove();
