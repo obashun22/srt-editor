@@ -7,10 +7,6 @@ export class ApiClient {
     return await fetch(API_ENDPOINT, {
       method: "POST",
       body: postData,
-      headers: new Headers({
-        "Content-Type": "multipart/form-data",
-      }),
-      mode: "cors",
     })
       .then((response) => response.blob())
       .then((blob) => {
