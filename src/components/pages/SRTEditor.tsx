@@ -66,7 +66,7 @@ export const SRTEditor = memo(() => {
                         return;
                       }
                     });
-                  }, 1000);
+                  }, 3000);
                 } else {
                   console.log(res);
                   alert("SRTファイルのアップロードに失敗しました。");

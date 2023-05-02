@@ -12,7 +12,6 @@ export class ApiClient {
         postData,
         {
           responseType: "blob",
-          timeout: 7200000,
         }
       );
       return res;
