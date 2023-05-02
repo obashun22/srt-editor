@@ -38,25 +38,45 @@ export const SRTEditor = memo(() => {
             // APIを叩いてSRTを取得
             apiClient
               .translateToSrt(uploadFile)
-              .then((blob) => {
-                console.log(blob!);
-                srt = blob!;
-                setSrtFile(srt);
-                parseSrtFile(srt)
-                  .then((data) => {
-                    setSrtData(data);
-                  })
-                  .catch((e) => {
-                    console.log(e);
-                    alert("SRTファイルのパースに失敗しました。");
-                    setSrtFile(null);
-                    setAudioFile(null);
-                    audioPlayer.src = "";
-                  });
+              .then((res) => {
+                if (res.status === 200) {
+                  const intervalId = setInterval(() => {
+                    apiClient.getSrt().then((res) => {
+                      if (res.status === 200) {
+                        clearInterval(intervalId);
+                        srt = new File([res.data], "output.srt", {
+                          type: "text/plain",
+                        });
+                        setSrtFile(srt);
+                        parseSrtFile(srt)
+                          .then((data) => {
+                            setSrtData(data);
+                          })
+                          .catch((e) => {
+                            console.log(e);
+                            alert("SRTファイルのパースに失敗しました。");
+                            setSrtFile(null);
+                            setAudioFile(null);
+                            audioPlayer.src = "";
+                          })
+                          .finally(() => {
+                            setLoading(false);
+                          });
+                      } else {
+                        return;
+                      }
+                    });
+                  }, 1000);
+                } else {
+                  console.log(res);
+                  alert("SRTファイルのアップロードに失敗しました。");
+                  setAudioFile(null);
+                  audioPlayer.src = "";
+                }
               })
               .catch((e) => {
                 console.log(e);
-                alert("SRTファイルの取得に失敗しました。");
+                alert("SRTファイルのアップロードに失敗しました。");
                 setAudioFile(null);
                 audioPlayer.src = "";
               })

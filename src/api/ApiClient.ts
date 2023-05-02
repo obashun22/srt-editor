@@ -7,16 +7,23 @@ export class ApiClient {
     const postData = new FormData();
     postData.append("file", file);
     try {
-      const response = await axios.post(API_ENDPOINT, postData, {
+      const res = await axios.post(API_ENDPOINT, postData, {
         responseType: "blob",
         timeout: 7200000,
       });
-      const file = new File([response.data], "transcribe.srt", {
-        type: "text/plain",
-      });
-      return file;
+      return res;
     } catch (err) {
       throw err;
     }
+  }
+  public async getSrt() {
+    return axios
+      .get(API_ENDPOINT)
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        throw err;
+      });
   }
 }
