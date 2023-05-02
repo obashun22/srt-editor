@@ -9,7 +9,7 @@ export class ApiClient {
     try {
       const response = await axios.post(API_ENDPOINT, postData, {
         responseType: "blob",
-        timeout: 7200,
+        timeout: 7200000,
       });
       const file = new File([response.data], "transcribe.srt", {
         type: "text/plain",
