@@ -72,6 +72,7 @@ export const SRTEditor = memo(() => {
                   alert("SRTファイルのアップロードに失敗しました。");
                   setAudioFile(null);
                   audioPlayer.src = "";
+                  setLoading(false);
                 }
               })
               .catch((e) => {
@@ -79,8 +80,6 @@ export const SRTEditor = memo(() => {
                 alert("SRTファイルのアップロードに失敗しました。");
                 setAudioFile(null);
                 audioPlayer.src = "";
-              })
-              .finally(() => {
                 setLoading(false);
               });
             break;
