@@ -1,22 +1,22 @@
+import axios from "axios";
+
 const API_ENDPOINT = `${process.env.REACT_APP_API_HOST}/whisper/transcribe`;
 
 export class ApiClient {
   public async translateToSrt(file: File) {
     const postData = new FormData();
     postData.append("file", file);
-    return await fetch(API_ENDPOINT, {
-      method: "POST",
-      body: postData,
-    })
-      .then((response) => response.blob())
-      .then((blob) => {
-        const file = new File([blob], "transcribe.srt", {
-          type: "text/plain",
-        });
-        return file;
-      })
-      .catch((err) => {
-        throw err;
+    try {
+      const response = await axios.post(API_ENDPOINT, postData, {
+        responseType: "blob",
+        timeout: 7200,
       });
+      const file = new File([response.data], "transcribe.srt", {
+        type: "text/plain",
+      });
+      return file;
+    } catch (err) {
+      throw err;
+    }
   }
 }
