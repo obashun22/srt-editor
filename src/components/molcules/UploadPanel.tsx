@@ -14,14 +14,7 @@ export const UploadPanel: React.VFC<Props> = memo((props) => {
           name="file audio"
           style={{ display: "inline-block", marginRight: "20px" }}
         />
-        {"or"}
-        <Icon
-          name="file text"
-          style={{ display: "inline-block", marginLeft: "20px" }}
-        />
-        <p className="mt-6">
-          音声またはSRTファイルをアップロードしてください。
-        </p>
+        <p className="mt-6">音声ファイルをアップロードしてください。</p>
       </Header>
       <input
         className="mx-auto"

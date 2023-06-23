@@ -1,21 +1,75 @@
-import { Container, Dimmer, Loader, Menu, Segment } from "semantic-ui-react";
-import { TitleHeader } from "../organisms/TitleHeader";
+import {
+  Container,
+  Dimmer,
+  Grid,
+  Icon,
+  Loader,
+  Menu,
+  Segment,
+} from "semantic-ui-react";
+import * as CSS from "csstype";
 import { UploadPanel } from "../molcules/UploadPanel";
 import { memo, useCallback, useContext, useState } from "react";
-import { EditPanel } from "../molcules/EditPanel";
+import { SRTEditPanel } from "../molcules/SRTEditPanel";
 import { SrtBlock } from "../../types/Srt";
 import { parseSrtFile, generateSrtString } from "../../utils/Srt";
 import { AudioContext } from "../../providers/AudioPlovider";
-import { AudioUploadPanel } from "../molcules/AudioUploadPanel";
 import { ApiClient } from "../../api/ApiClient";
+import { SideBar } from "../organisms/SideBar";
+import { UploadPage } from "./UploadPage";
+import { EditorPage } from "./EditorPage";
+import { QABlock, Task } from "../../types/Task";
 
 const apiClient = new ApiClient();
 
-export const SRTEditor = memo(() => {
+const sampleTask = {
+  id: 0,
+  title: "人工知能基礎１ ニューラルネットワーク",
+  srtBlocks: [
+    {
+      id: 1,
+      start: {
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      },
+      end: {
+        hours: 0,
+        minutes: 0,
+        seconds: 12,
+        milliseconds: 0,
+      },
+      subtitle: "Hello, World!",
+    },
+  ] as SrtBlock[],
+  qaBlocks: [
+    {
+      id: 0,
+      question: "Hello, World!とは何ですか？",
+      answer: "プログラミング言語のHello, World!という出力のことです。",
+    },
+    {
+      id: 1,
+      question: "hogeとは何ですか？",
+      answer: "hogeはfugaです。",
+    },
+  ] as QABlock[],
+} as Task;
+const sampleTasks = [
+  sampleTask,
+  { ...sampleTask, id: 1, title: "文化人類学基礎 概説" },
+  { ...sampleTask, id: 2, title: "量子力学入門講座 シュレディンガー方程式" },
+];
+
+export const EditorApp = memo(() => {
   const [srtFile, setSrtFile] = useState<File | null>(null);
-  const [srtData, setSrtData] = useState<SrtBlock[]>([]);
+  const [srtBlocks, setsrtBlocks] = useState<SrtBlock[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [audioFile, setAudioFile] = useState<File | null>(null);
+
+  const [pageIndex, setPageIndex] = useState<number>(2); // -1: UploadPage, others: EditorPage
+  const [tasks, setTasks] = useState<Task[]>(sampleTasks);
 
   const audioPlayer = useContext(AudioContext);
 
@@ -50,7 +104,7 @@ export const SRTEditor = memo(() => {
                         setSrtFile(srt);
                         parseSrtFile(srt)
                           .then((data) => {
-                            setSrtData(data);
+                            setsrtBlocks(data);
                           })
                           .catch((e) => {
                             console.log(e);
@@ -88,7 +142,7 @@ export const SRTEditor = memo(() => {
             setSrtFile(srt);
             parseSrtFile(srt)
               .then((data) => {
-                setSrtData(data);
+                setsrtBlocks(data);
               })
               .catch((err) => {
                 console.log(err);
@@ -102,28 +156,7 @@ export const SRTEditor = memo(() => {
         }
       }
     },
-    [setLoading, setSrtData, setSrtFile, setAudioFile, audioPlayer]
-  );
-
-  const handleAudioFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) {
-        switch (e.target.files[0].type) {
-          case "audio/mpeg":
-          case "audio/mp3":
-          case "audio/wav":
-          case "audio/ogg":
-          case "audio/aac":
-            setAudioFile(e.target.files[0]);
-            audioPlayer.src = URL.createObjectURL(e.target.files[0]);
-            break;
-          default:
-            alert("音声ファイルを選択してください。");
-            break;
-        }
-      }
-    },
-    [setAudioFile, audioPlayer]
+    [setLoading, setsrtBlocks, setSrtFile, setAudioFile, audioPlayer]
   );
 
   const handleQuitButtonClick = useCallback(() => {
@@ -131,7 +164,7 @@ export const SRTEditor = memo(() => {
     if (willQuit) {
       audioPlayer.pause();
       setSrtFile(null);
-      setSrtData([]);
+      setsrtBlocks([]);
       setAudioFile(null);
       audioPlayer.src = "";
     }
@@ -144,19 +177,19 @@ export const SRTEditor = memo(() => {
       if (srtFile) {
         parseSrtFile(srtFile)
           .then((data) => {
-            setSrtData(data);
+            setsrtBlocks(data);
           })
           .catch((err) => {
             console.log(err);
           });
       }
     }
-  }, [srtFile, setSrtData, audioPlayer]);
+  }, [srtFile, setsrtBlocks, audioPlayer]);
 
   const handleDownloadButtonClick = useCallback(() => {
     const willDownload = window.confirm("編集中の内容をダウンロードします。");
     if (willDownload) {
-      const srtStr = generateSrtString(srtData);
+      const srtStr = generateSrtString(srtBlocks);
       const blob = new Blob([srtStr], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -167,69 +200,72 @@ export const SRTEditor = memo(() => {
       a.remove();
       URL.revokeObjectURL(url);
     }
-  }, [srtData]);
+  }, [srtBlocks]);
 
   const handleSrtBlockChange = useCallback((newSrtBlock: SrtBlock) => {
-    setSrtData((prevSrtData) => {
+    setsrtBlocks((prevsrtBlocks) => {
       // 直接stateを参照するとコールバック関数をメモ化できない
-      let newSrtData = [...prevSrtData]; // Shallow copy
-      newSrtData[newSrtBlock.id - 1] = newSrtBlock; // 値が変更されたblockとsrtDataだけアドレスが変わる
-      return newSrtData;
+      let newsrtBlocks = [...prevsrtBlocks]; // Shallow copy
+      newsrtBlocks[newSrtBlock.id - 1] = newSrtBlock; // 値が変更されたblockとsrtBlocksだけアドレスが変わる
+      return newsrtBlocks;
     });
   }, []);
 
   return (
     <>
-      <TitleHeader />
-      <Container>
-        {!audioFile && srtFile && (
-          <AudioUploadPanel onChange={handleAudioFileInputChange} />
-        )}
-        {srtFile ? (
-          <>
-            <div className="my-6">
-              <Menu>
-                <Menu.Item link onClick={handleQuitButtonClick}>
-                  終了
-                </Menu.Item>
-                <Menu.Menu position="right">
-                  <Menu.Item link onClick={handleResetButtonClick}>
-                    リセット
-                  </Menu.Item>
-                  <Menu.Item link onClick={handleDownloadButtonClick}>
-                    ダウンロード
-                  </Menu.Item>
-                </Menu.Menu>
-              </Menu>
+      <div style={pageLayout}>
+        <div style={sideBarStyle}>
+          <SideBar
+            tasks={tasks}
+            activeIndex={pageIndex}
+            onItemClick={setPageIndex}
+          />
+        </div>
+        <div style={contentStyle}>
+          {pageIndex === -1 ? (
+            <>
+              <div>index {pageIndex}</div>
+              <UploadPage onUpload={handleFileInputChange} />
+            </>
+          ) : (
+            <div style={{ paddingTop: 40 }}>
+              {/* <div>pageIndex {pageIndex}</div>
+              <div>taskIndex {tasks[pageIndex].id}</div> */}
+              <EditorPage
+                loading={loading}
+                task={tasks[pageIndex]}
+                onSrtBlockChange={handleSrtBlockChange}
+                onQuit={handleQuitButtonClick}
+                onReset={handleResetButtonClick}
+                onDownload={handleDownloadButtonClick}
+              />
             </div>
-            <div className="my-8 overflow-y-scroll" style={{ height: "80vh" }}>
-              {srtData.map((block) => (
-                <div key={block.id} className="py-2">
-                  <EditPanel
-                    srtBlock={block}
-                    onSrtBlockChange={handleSrtBlockChange}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        ) : loading ? (
-          <div className="my-6">
-            <Segment className="h-64">
-              <Dimmer active inverted>
-                <Loader inverted>読み込み中</Loader>
-              </Dimmer>
-            </Segment>
-          </div>
-        ) : (
-          <div className="mt-16">
-            <UploadPanel onChange={handleFileInputChange} />
-          </div>
-        )}
-      </Container>
+          )}
+        </div>
+      </div>
     </>
   );
 });
+
+const pageLayout = {
+  display: "flex",
+};
+
+const sideBarStyle = {
+  flexGrow: 0,
+  flexShrink: 0,
+  width: "300px",
+  height: "100vh",
+  backgroundColor: "#1d1d1d",
+};
+
+const contentStyle: CSS.Properties = {
+  flexGrow: 1,
+  flexShrink: 1,
+  height: "100vh",
+  padding: "0 20px",
+  textAlign: "center",
+};
 
 /*
 

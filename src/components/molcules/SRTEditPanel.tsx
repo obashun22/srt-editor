@@ -32,7 +32,7 @@ const styles: stylesType = {
 
 let playingId = 0;
 
-export const EditPanel: React.VFC<Props> = memo((props) => {
+export const SRTEditPanel: React.VFC<Props> = memo((props) => {
   const { srtBlock, onSrtBlockChange } = props;
   const [progressRate, setProgressRate] = useState(0);
 
@@ -91,7 +91,7 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
     (
       e: React.ChangeEvent<HTMLInputElement>,
       type: "start" | "end",
-      scale: "hours" | "minutes" | "seconds"
+      scale: "hours" | "minutes" | "seconds" | "milliseconds"
     ) => {
       const newSrtBlock = {
         ...srtBlock,
@@ -140,7 +140,13 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
                 digits={start.seconds}
                 onChange={(e) => handleTimecodeChange(e, "start", "seconds")}
               />
-              {" - "}
+              {" : "}
+              <DigitInput
+                digits={start.milliseconds}
+                onChange={(e) =>
+                  handleTimecodeChange(e, "start", "milliseconds")
+                }
+              />
             </div>
             <div
               className="inline-block cursor-default"
@@ -159,6 +165,11 @@ export const EditPanel: React.VFC<Props> = memo((props) => {
               <DigitInput
                 digits={end.seconds}
                 onChange={(e) => handleTimecodeChange(e, "end", "seconds")}
+              />
+              {" : "}
+              <DigitInput
+                digits={end.milliseconds}
+                onChange={(e) => handleTimecodeChange(e, "end", "milliseconds")}
               />
             </div>
           </div>
