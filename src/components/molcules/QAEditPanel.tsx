@@ -26,6 +26,7 @@ const styles: stylesType = {
     outline: "none",
     resize: "none",
     fontFamily: "inherit",
+    backgroundColor: "inherit",
   },
   input: {
     outline: "none",
@@ -58,30 +59,37 @@ export const QAEditPanel: React.VFC<Props> = memo(
     return (
       <Segment className="text-left cursor-pointer">
         <Grid stackable>
-          <Grid.Column width={16}>
-            {id}
-            <Form onClick={preventClickEvent}>
-              <TextArea
-                style={styles.textarea}
-                value={question}
-                onChange={handleTextareaChange}
-              />
-            </Form>
-            <p style={{ textAlign: "right" }}>
-              {question.length}文字 / {LIMIT_LENGTH}文字
-            </p>
-            <Divider />
-            <Form onClick={preventClickEvent}>
-              <TextArea
-                style={styles.textarea}
-                value={answer}
-                onChange={handleTextareaChange}
-              />
-            </Form>
-            <p style={{ textAlign: "right" }}>
-              {answer.length}文字 / {LIMIT_LENGTH}文字
-            </p>
-          </Grid.Column>
+          <Grid.Row className="bg-red-100">
+            <Grid.Column width={3}>No.{id + 1}</Grid.Column>
+            <Grid.Column width={13}>
+              <Form onClick={preventClickEvent}>
+                <TextArea
+                  style={styles.textarea}
+                  value={"Q. " + question}
+                  onChange={handleTextareaChange}
+                />
+              </Form>
+              <p style={{ textAlign: "right" }}>
+                {question.length}文字 / {LIMIT_LENGTH}文字
+              </p>
+            </Grid.Column>
+          </Grid.Row>
+          <Divider style={{ margin: 0 }} />
+          <Grid.Row className="">
+            <Grid.Column width={3} />
+            <Grid.Column width={13}>
+              <Form onClick={preventClickEvent}>
+                <TextArea
+                  style={styles.textarea}
+                  value={"A. " + answer}
+                  onChange={handleTextareaChange}
+                />
+              </Form>
+              <p style={{ textAlign: "right" }}>
+                {answer.length}文字 / {LIMIT_LENGTH}文字
+              </p>
+            </Grid.Column>
+          </Grid.Row>
         </Grid>
       </Segment>
     );
