@@ -1,10 +1,5 @@
 import { SrtBlock } from "./Srt";
-
-export type QABlock = {
-  id: number;
-  question: string;
-  answer: string;
-};
+import { QABlock } from "./QA";
 
 export type Task = {
   id: number;

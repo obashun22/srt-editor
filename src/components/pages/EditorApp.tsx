@@ -18,7 +18,8 @@ import { ApiClient } from "../../api/ApiClient";
 import { SideBar } from "../organisms/SideBar";
 import { UploadPage } from "./UploadPage";
 import { EditorPage } from "./EditorPage";
-import { QABlock, Task } from "../../types/Task";
+import { Task } from "../../types/Task";
+import { QABlock } from "../../types/QA";
 
 const apiClient = new ApiClient();
 
@@ -27,7 +28,7 @@ const sampleTask = {
   title: "人工知能基礎１ ニューラルネットワーク",
   srtBlocks: [
     {
-      id: 1,
+      id: 0,
       start: {
         hours: 0,
         minutes: 0,
@@ -202,14 +203,16 @@ export const EditorApp = memo(() => {
     }
   }, [srtBlocks]);
 
-  const handleSrtBlockChange = useCallback((newSrtBlock: SrtBlock) => {
-    setsrtBlocks((prevsrtBlocks) => {
-      // 直接stateを参照するとコールバック関数をメモ化できない
-      let newsrtBlocks = [...prevsrtBlocks]; // Shallow copy
-      newsrtBlocks[newSrtBlock.id - 1] = newSrtBlock; // 値が変更されたblockとsrtBlocksだけアドレスが変わる
-      return newsrtBlocks;
-    });
-  }, []);
+  const handleTaskChange = useCallback(
+    (newTask: Task) => {
+      setTasks((prevTasks) => {
+        let newTasks = [...prevTasks];
+        newTasks[pageIndex] = newTask;
+        return newTasks;
+      });
+    },
+    [pageIndex]
+  );
 
   return (
     <>
@@ -223,18 +226,20 @@ export const EditorApp = memo(() => {
         </div>
         <div style={contentStyle}>
           {pageIndex === -1 ? (
+            // アップロードページ
             <>
               <div>index {pageIndex}</div>
               <UploadPage onUpload={handleFileInputChange} />
             </>
           ) : (
+            // エディタページ
             <div style={{ paddingTop: 40 }}>
               {/* <div>pageIndex {pageIndex}</div>
               <div>taskIndex {tasks[pageIndex].id}</div> */}
               <EditorPage
                 loading={loading}
                 task={tasks[pageIndex]}
-                onSrtBlockChange={handleSrtBlockChange}
+                onTaskChange={handleTaskChange}
                 onQuit={handleQuitButtonClick}
                 onReset={handleResetButtonClick}
                 onDownload={handleDownloadButtonClick}

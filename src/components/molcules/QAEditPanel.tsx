@@ -1,13 +1,6 @@
-import {
-  Divider,
-  Form,
-  Grid,
-  Progress,
-  Segment,
-  TextArea,
-} from "semantic-ui-react";
-import { memo, useCallback, useContext, useState } from "react";
-import { QABlock } from "../../types/Task";
+import { Divider, Form, Grid, Segment, TextArea } from "semantic-ui-react";
+import { memo, useCallback } from "react";
+import { QABlock } from "../../types/QA";
 
 type Props = {
   qaBlock: QABlock;
@@ -44,30 +37,33 @@ export const QAEditPanel: React.VFC<Props> = memo(
     const preventClickEvent = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
     }, []);
-    const handleTextareaChange = useCallback(
-      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newSrtBlock = {
-          ...qaBlock,
-          subtitle: e.target.value,
-        };
-        onQABlockChange(newSrtBlock);
-      },
-      [qaBlock, onQABlockChange]
-    );
+    const handleTextareaChange = (
+      e: React.ChangeEvent<HTMLTextAreaElement>
+    ) => {
+      const newQABlock = {
+        ...qaBlock,
+        [e.target.name]: e.target.value,
+      };
+      onQABlockChange(newQABlock);
+    };
 
     const { id, question, answer } = qaBlock;
     return (
-      <Segment className="text-left cursor-pointer">
+      <Segment className="text-left">
         <Grid stackable>
-          <Grid.Row className="bg-red-100">
+          <Grid.Row className="bg-gray-100">
             <Grid.Column width={3}>No.{id + 1}</Grid.Column>
             <Grid.Column width={13}>
               <Form onClick={preventClickEvent}>
-                <TextArea
-                  style={styles.textarea}
-                  value={"Q. " + question}
-                  onChange={handleTextareaChange}
-                />
+                <div className="flex">
+                  <strong className="text-lg">Q.</strong>
+                  <TextArea
+                    name="question"
+                    style={styles.textarea}
+                    value={question}
+                    onChange={handleTextareaChange}
+                  />
+                </div>
               </Form>
               <p style={{ textAlign: "right" }}>
                 {question.length}文字 / {LIMIT_LENGTH}文字
@@ -79,11 +75,15 @@ export const QAEditPanel: React.VFC<Props> = memo(
             <Grid.Column width={3} />
             <Grid.Column width={13}>
               <Form onClick={preventClickEvent}>
-                <TextArea
-                  style={styles.textarea}
-                  value={"A. " + answer}
-                  onChange={handleTextareaChange}
-                />
+                <div className="flex">
+                  <strong className="text-lg">A.</strong>
+                  <TextArea
+                    name="answer"
+                    style={styles.textarea}
+                    value={answer}
+                    onChange={handleTextareaChange}
+                  />
+                </div>
               </Form>
               <p style={{ textAlign: "right" }}>
                 {answer.length}文字 / {LIMIT_LENGTH}文字

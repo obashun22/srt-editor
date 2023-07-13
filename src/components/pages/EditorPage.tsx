@@ -1,33 +1,44 @@
-import {
-  Button,
-  Dimmer,
-  Header,
-  Loader,
-  Menu,
-  Segment,
-} from "semantic-ui-react";
+import { Dimmer, Loader, Menu, Segment } from "semantic-ui-react";
 import { SRTEditPanel } from "../molcules/SRTEditPanel";
 import { SrtBlock } from "../../types/Srt";
+import { QABlock } from "../../types/QA";
 import { memo } from "react";
 import { Task } from "../../types/Task";
-import { TitleHeader } from "../organisms/TitleHeader";
 import React from "react";
 import { QAEditPanel } from "../molcules/QAEditPanel";
 
 type Props = {
   loading: boolean;
   task: Task;
-  onSrtBlockChange: (srtBlock: SrtBlock) => void;
+  onTaskChange: (task: Task) => void;
   onQuit: () => void;
   onReset: () => void;
   onDownload: () => void;
 };
 
 export const EditorPage: React.VFC<Props> = memo(
-  ({ loading, task, onSrtBlockChange, onQuit, onReset, onDownload }) => {
+  ({ loading, task, onTaskChange, onQuit, onReset, onDownload }) => {
     const [activeItem, setActiveItem] = React.useState<"SRT" | "QA">("SRT");
 
     const handleItemClick = (e: any, { name }: any) => setActiveItem(name);
+
+    const handleSrtBlockChange = (newBlock: SrtBlock) => {
+      const newBlocks = task.srtBlocks!;
+      newBlocks[newBlock.id] = newBlock;
+      onTaskChange({
+        ...task,
+        srtBlocks: newBlocks,
+      });
+    };
+
+    const handleQABlockChange = (newBlock: QABlock) => {
+      const newBlocks = task.qaBlocks!;
+      newBlocks[newBlock.id] = newBlock;
+      onTaskChange({
+        ...task,
+        qaBlocks: newBlocks,
+      });
+    };
 
     return (
       <>
@@ -44,6 +55,7 @@ export const EditorPage: React.VFC<Props> = memo(
           />
         </Menu>
         {activeItem === "SRT" &&
+          // SRTエディタ
           (loading ? (
             <div className="my-6">
               <Segment className="h-64">
@@ -53,6 +65,7 @@ export const EditorPage: React.VFC<Props> = memo(
               </Segment>
             </div>
           ) : (
+            // QAエディタ
             <div>
               <div className="my-6">
                 <Menu>
@@ -81,7 +94,7 @@ export const EditorPage: React.VFC<Props> = memo(
                   <div key={block.id} className="py-2">
                     <SRTEditPanel
                       srtBlock={block}
-                      onSrtBlockChange={onSrtBlockChange}
+                      onSrtBlockChange={handleSrtBlockChange}
                     />
                   </div>
                 ))}
@@ -94,9 +107,7 @@ export const EditorPage: React.VFC<Props> = memo(
               <div key={block.id} className="py-2">
                 <QAEditPanel
                   qaBlock={block}
-                  onQABlockChange={() => {
-                    console.log("QABlockChange");
-                  }}
+                  onQABlockChange={handleQABlockChange}
                 />
               </div>
             ))}
